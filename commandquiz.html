@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Command Challenge</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #33ff33;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.15),
+                    rgba(0, 0, 0, 0.15) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .matrix-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            opacity: 0.15;
+        }
+        
+        .matrix-column {
+            position: relative;
+            float: left;
+            width: 20px;
+            height: 100%;
+        }
+        
+        .matrix-character {
+            position: absolute;
+            color: #33ff33;
+            font-size: 14px;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 500px;
+            background: rgba(10, 15, 10, 0.9);
+            border: 1px solid #33ff33;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(51, 255, 51, 0.3);
+            padding: 15px;
+            overflow: hidden;
+        }
+        
+        /* Start Screen */
+        #startScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px 10px;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            color: #33ff33;
+            text-shadow: 0 0 10px rgba(51, 255, 51, 0.7);
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .tagline {
+            color: #ffcc00;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            max-width: 400px;
+        }
+        
+        #userForm {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 350px;
+        }
+        
+        #username {
+            background: rgba(20, 30, 20, 0.8);
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 5px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        
+        #username::placeholder {
+            color: #66aa66;
+        }
+        
+        .start-btn {
+            background: linear-gradient(to right, #006600, #003300);
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .start-btn:hover {
+            background: linear-gradient(to right, #009900, #006600);
+            box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+        }
+        
+        /* Quiz Container */
+        #quizContainer {
+            display: none;
+            flex-direction: column;
+        }
+        
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #33ff33;
+        }
+        
+        .terminal-title {
+            font-size: 1.3rem;
+            color: #33ff33;
+            text-shadow: 0 0 10px rgba(51, 255, 51, 0.7);
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        #usernameDisplay {
+            color: #ff00ff;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        #scoreDisplay {
+            font-size: 1rem;
+            color: #ffcc00;
+        }
+        
+        .timer-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #33ff33;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #33ff33;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .timer.warning {
+            color: #ff5555;
+            border-color: #ff5555;
+            box-shadow: 0 0 15px rgba(255, 85, 85, 0.5);
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .command-line {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #33ff33;
+        }
+        
+        .prompt {
+            color: #33ff33;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .prompt::before {
+            content: "root@hackbox:~$";
+            color: #ff00ff;
+        }
+        
+        .difficulty-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .easy {
+            background: rgba(0, 100, 0, 0.3);
+            color: #33ff33;
+        }
+        
+        .medium {
+            background: rgba(0, 80, 150, 0.3);
+            color: #00ccff;
+        }
+        
+        .hard {
+            background: rgba(150, 0, 0, 0.3);
+            color: #ff6666;
+        }
+        
+        .question {
+            margin-bottom: 15px;
+        }
+        
+        .question-context {
+            color: #ffcc00;
+            font-style: italic;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .question-text {
+            font-size: 1rem;
+            margin: 8px 0;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .option-btn {
+            background: rgba(20, 30, 20, 0.8);
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 10px;
+            font-size: 0.95rem;
+            text-align: left;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option-btn:hover {
+            background: rgba(51, 255, 51, 0.2);
+        }
+        
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .option-btn.correct {
+            background: rgba(0, 100, 0, 0.7);
+            border-color: #00ff00;
+        }
+        
+        .option-btn.incorrect {
+            background: rgba(100, 0, 0, 0.7);
+            border-color: #ff0000;
+        }
+        
+        .explanation {
+            background: rgba(20, 30, 20, 0.8);
+            border: 1px solid #33ff33;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .explanation-title {
+            color: #ffcc00;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        
+        .lifelines {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .lifeline-btn {
+            background: rgba(30, 40, 30, 0.8);
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .lifeline-btn:hover:not(:disabled) {
+            background: rgba(51, 255, 51, 0.2);
+        }
+        
+        .lifeline-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: linear-gradient(to right, #006600, #003300);
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .control-btn:hover {
+            background: linear-gradient(to right, #009900, #006600);
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #33ff33;
+        }
+        
+        .stat-box {
+            background: rgba(10, 20, 10, 0.8);
+            border: 1px solid #33ff33;
+            padding: 6px 10px;
+            border-radius: 3px;
+            text-align: center;
+            flex: 1;
+            margin: 0 4px;
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            font-size: 1.1rem;
+            color: #ff00ff;
+            font-weight: bold;
+        }
+        
+        /* Game Over Screens */
+        .hacker-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .access-denied {
+            font-size: 2rem;
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .access-granted {
+            font-size: 2rem;
+            color: #33ff33;
+            text-shadow: 0 0 10px rgba(51, 255, 51, 0.7);
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .system-message {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            max-width: 400px;
+            line-height: 1.6;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 1.6rem;
+            }
+            
+            .terminal-title {
+                font-size: 1.1rem;
+            }
+            
+            .access-denied, .access-granted {
+                font-size: 1.6rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+                border-radius: 0;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .tagline {
+                font-size: 0.9rem;
+            }
+            
+            .terminal-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .user-info {
+                align-items: flex-start;
+            }
+            
+            .command-line {
+                padding: 10px;
+            }
+            
+            .lifelines {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .lifeline-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-effect" id="matrixEffect"></div>
+    
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="startScreen">
+            <div class="logo">Linux Command Challenge</div>
+            <div class="tagline">Test your Linux command knowledge against the clock!</div>
+            
+            <form id="userForm">
+                <input type="text" id="username" placeholder="Enter your hacker alias" required>
+                <button type="submit" class="start-btn">
+                    <i class="fas fa-terminal"></i> Start Challenge
+                </button>
+            </form>
+            
+            <div class="game-stats" style="margin-top: 20px;">
+                <div class="stat-box">
+                    <div>Difficulty</div>
+                    <div class="stat-value">MIXED</div>
+                </div>
+                <div class="stat-box">
+                    <div>Questions</div>
+                    <div class="stat-value">15</div>
+                </div>
+                <div class="stat-box">
+                    <div>Time/Question</div>
+                    <div class="stat-value">30s</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quiz Container -->
+        <div id="quizContainer">
+            <div class="terminal-header">
+                <h1 class="terminal-title">Linux Command Challenge</h1>
+                <div class="user-info">
+                    <div id="usernameDisplay">User: Anonymous</div>
+                    <div id="scoreDisplay">Score: 0/15</div>
+                </div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer" id="timer">30</div>
+            </div>
+            
+            <div class="command-line">
+                <div class="prompt">
+                    <span id="questionPrompt">Active Challenge</span>
+                </div>
+                
+                <div class="question" id="question">
+                    <div class="difficulty-tag" id="difficultyTag">EASY</div>
+                    <div class="question-context" id="questionContext">Initializing security protocol...</div>
+                    <div class="question-text" id="questionText">Preparing your first challenge</div>
+                </div>
+                
+                <div class="options-grid" id="options"></div>
+                
+                <div class="explanation" id="explanation">
+                    <div class="explanation-title">Command Explanation:</div>
+                    <div id="explanationText"></div>
+                </div>
+                
+                <div class="lifelines">
+                    <button class="lifeline-btn" id="lifeline5050">
+                        <i class="fas fa-half-alt"></i> 50:50
+                    </button>
+                    <button class="lifeline-btn" id="lifelineAudience">
+                        <i class="fas fa-users"></i> Crowd Source
+                    </button>
+                    <button class="lifeline-btn" id="lifelineExpert">
+                        <i class="fas fa-user-secret"></i> Expert Help
+                    </button>
+                </div>
+            </div>
+            
+            <div class="game-stats">
+                <div class="stat-box">
+                    <div>Security Level</div>
+                    <div class="stat-value" id="currentLevel">1/15</div>
+                </div>
+                <div class="stat-box">
+                    <div>System Integrity</div>
+                    <div class="stat-value" id="score">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div>Access Level</div>
+                    <div class="stat-value" id="accessLevel">USER</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" id="next">
+                    <i class="fas fa-forward"></i> Next Challenge
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Over Screens -->
+        <div class="hacker-text" id="gameOverScreen" style="display:none;">
+            <div class="access-denied">ACCESS DENIED</div>
+            <div class="system-message">
+                Intrusion detected! System defenses have neutralized your access attempt.
+                <br><br>
+                <span id="failureMessage"></span>
+            </div>
+            <button class="control-btn" id="restartButton">
+                <i class="fas fa-terminal"></i> Initiate New Breach Attempt
+            </button>
+        </div>
+        
+        <div class="hacker-text" id="gameWinScreen" style="display:none;">
+            <div class="access-granted">ROOT ACCESS GRANTED</div>
+            <div class="system-message">
+                <span id="successMessage"></span>
+                <br><br>
+                System fully compromised. All firewalls bypassed.
+            </div>
+            <button class="control-btn" id="restartWinButton">
+                <i class="fas fa-redo"></i> Launch New Operation
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Matrix effect
+        function createMatrixEffect() {
+            const container = document.getElementById('matrixEffect');
+            const chars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ$#@%&*";
+            const cols = Math.floor(window.innerWidth / 20);
+            
+            for (let i = 0; i < cols; i++) {
+                const col = document.createElement('div');
+                col.className = 'matrix-column';
+                
+                // Create initial characters
+                const charCount = Math.floor(Math.random() * 20) + 10;
+                for (let j = 0; j < charCount; j++) {
+                    const char = document.createElement('div');
+                    char.className = 'matrix-character';
+                    char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                    char.style.top = `${-100 + j * 20}px`;
+                    char.style.animationDuration = `${Math.random() * 5 + 5}s`;
+                    char.style.animationDelay = `${Math.random() * 2}s`;
+                    col.appendChild(char);
+                }
+                
+                container.appendChild(col);
+            }
+        }
+        
+        // Game data
+        const accessLevels = ["USER", "GUEST", "ADMIN", "SUPERUSER", "ROOT"];
+        const securityLevels = ["LOW", "MEDIUM", "HIGH", "MAXIMUM", "EXTREME"];
+        
+        const allQuestions = [
+            // Easy questions
+            {
+                difficulty: "easy",
+                context: "You need to see what files are in your current directory.",
+                question: "Which command lists files and directories?",
+                options: ["ls", "dir", "list", "show"],
+                answer: "ls",
+                explanation: "The 'ls' command lists files and directories in the current working directory. It's one of the most basic and frequently used Linux commands."
+            },
+            {
+                difficulty: "easy",
+                context: "You need to know where you are in the filesystem.",
+                question: "Which command shows your current directory?",
+                options: ["pwd", "whereami", "location", "cwd"],
+                answer: "pwd",
+                explanation: "The 'pwd' command (Print Working Directory) displays the full path of your current directory. This is essential for orientation in the terminal."
+            },
+            {
+                difficulty: "easy",
+                context: "You need to create a new directory for your project.",
+                question: "Which command creates a new directory?",
+                options: ["mkdir", "md", "newdir", "create"],
+                answer: "mkdir",
+                explanation: "The 'mkdir' command (Make Directory) creates a new directory with the specified name. You can create multiple directories at once."
+            },
+            {
+                difficulty: "easy",
+                context: "You need to move a file to a different directory.",
+                question: "Which command moves files or directories?",
+                options: ["mv", "move", "cp", "relocate"],
+                answer: "mv",
+                explanation: "The 'mv' command moves files or directories from one location to another. It can also be used to rename files."
+            },
+            {
+                difficulty: "easy",
+                context: "You need to copy a configuration file before editing it.",
+                question: "Which command copies files or directories?",
+                options: ["cp", "copy", "duplicate", "clone"],
+                answer: "cp",
+                explanation: "The 'cp' command copies files or directories. Use the '-r' option to copy directories recursively."
+            },
+            
+            // Medium questions
+            {
+                difficulty: "medium",
+                context: "You're analyzing a compromised system and need to view all files, including hidden ones.",
+                question: "Which command would you use to list all files in a directory, including hidden files?",
+                options: ["ls -a", "ls -l", "dir /a", "list -hidden"],
+                answer: "ls -a",
+                explanation: "The 'ls -a' command lists all files in a directory, including hidden files (those starting with a dot). This is essential when investigating a compromised system as attackers often hide malicious files."
+            },
+            {
+                difficulty: "medium",
+                context: "You need to find which process is using too much memory.",
+                question: "Which command provides a dynamic, real-time view of running processes?",
+                options: ["top", "ps aux", "htop", "systemctl status"],
+                answer: "top",
+                explanation: "The 'top' command provides a dynamic, real-time view of running processes, showing CPU and memory usage. Press 'q' to quit."
+            },
+            {
+                difficulty: "medium",
+                context: "You need to securely copy a sensitive file to a remote server.",
+                question: "Which command provides encrypted file transfer between systems?",
+                options: ["scp", "ftp", "rsync", "wget"],
+                answer: "scp",
+                explanation: "SCP (Secure Copy Protocol) uses SSH for encrypted file transfers, ensuring data confidentiality during transmission."
+            },
+            {
+                difficulty: "medium",
+                context: "You suspect unauthorized network connections to your server.",
+                question: "Which command displays all active network connections and listening ports?",
+                options: ["netstat -tuln", "ifconfig", "ping", "traceroute"],
+                answer: "netstat -tuln",
+                explanation: "'netstat -tuln' shows all active network connections (-t), UDP ports (-u), and listening ports (-l) with numeric addresses (-n)."
+            },
+            {
+                difficulty: "medium",
+                context: "You need to view the last 10 lines of a log file.",
+                question: "Which command displays the end of a file?",
+                options: ["tail", "head", "end", "last"],
+                answer: "tail",
+                explanation: "The 'tail' command displays the last 10 lines of a file by default. Use '-n 20' to show the last 20 lines."
+            },
+            
+            // Hard questions
+            {
+                difficulty: "hard",
+                context: "You need to permanently delete a sensitive file to prevent recovery.",
+                question: "Which command securely overwrites a file before deleting it?",
+                options: ["shred", "rm", "del", "wipe"],
+                answer: "shred",
+                explanation: "The 'shred' command overwrites a file multiple times before deleting it, making data recovery extremely difficult. Use '-u' to remove after overwriting."
+            },
+            {
+                difficulty: "hard",
+                context: "You need to monitor a log file in real-time for suspicious activity.",
+                question: "Which command continuously displays new entries as they're added to a log file?",
+                options: ["tail -f", "head -f", "watch", "cat --follow"],
+                answer: "tail -f",
+                explanation: "'tail -f' follows a file and displays new lines as they're appended. Essential for real-time monitoring of logs during security incidents."
+            },
+            {
+                difficulty: "hard",
+                context: "You need to change permissions of a script to make it executable.",
+                question: "Which command adds execute permission for the file owner?",
+                options: ["chmod u+x", "chmod +x", "chown executable", "setperm exec"],
+                answer: "chmod u+x",
+                explanation: "'chmod u+x' adds execute permission for the user (owner) of the file. This is necessary before running scripts while maintaining security."
+            },
+            {
+                difficulty: "hard",
+                context: "You're investigating a security incident and need to view command history.",
+                question: "Which command displays the user's previously executed commands?",
+                options: ["history", "last", "cat .bash_history", "auditd"],
+                answer: "history",
+                explanation: "The 'history' command displays the current user's command history. Use '!number' to repeat a command from history."
+            },
+            {
+                difficulty: "hard",
+                context: "You need to find all files modified in the last 24 hours.",
+                question: "Which command searches for files based on modification time?",
+                options: ["find / -mtime -1", "ls -lt", "grep modified", "locate -m 1"],
+                answer: "find / -mtime -1",
+                explanation: "'find / -mtime -1' searches the entire filesystem for files modified within the last day. Change '-1' to adjust days."
+            }
+        ];
+        
+        let questions = [];
+        let current = 0;
+        let score = 0;
+        let username = "";
+        let lifelines = {
+            fiftyFifty: true,
+            audience: true,
+            expert: true
+        };
+        let timer;
+        let timeLeft = 30;
+        
+        // Initialize the game
+        function initGame() {
+            createMatrixEffect();
+            
+            // Setup username form
+            const userForm = document.getElementById('userForm');
+            userForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                username = document.getElementById('username').value.trim() || "Anonymous";
+                document.getElementById('usernameDisplay').textContent = "User: " + username;
+                
+                document.getElementById('startScreen').style.display = 'none';
+                document.getElementById('quizContainer').style.display = 'flex';
+                
+                shuffleAndPickQuestions();
+                loadQuestion();
+                updateStats();
+            });
+            
+            // Setup lifelines
+            document.getElementById('lifeline5050').addEventListener('click', use5050);
+            document.getElementById('lifelineAudience').addEventListener('click', useAudience);
+            document.getElementById('lifelineExpert').addEventListener('click', useExpert);
+            
+            // Setup next button
+            document.getElementById('next').addEventListener('click', nextQuestion);
+            
+            // Setup restart buttons
+            document.getElementById('restartButton').addEventListener('click', restartGame);
+            document.getElementById('restartWinButton').addEventListener('click', restartGame);
+        }
+        
+        // Shuffle array function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        // Shuffle and pick 15 questions
+        function shuffleAndPickQuestions() {
+            // Shuffle all questions
+            const shuffled = shuffleArray([...allQuestions]);
+            
+            // Pick 15 questions
+            questions = shuffled.slice(0, 15);
+        }
+        
+        // Start the timer
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 30;
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = timeLeft;
+            timerElement.classList.remove('warning');
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+
+                // Blinking warning at 10 seconds
+                if (timeLeft <= 10) {
+                    timerElement.classList.add('warning');
+                }
+
+                // Time's up
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    const q = questions[current];
+                    document.getElementById('explanationText').textContent = "Time's up! The correct answer was: " + q.answer;
+                    document.getElementById('explanation').style.display = "block";
+
+                    // Highlight correct answer and disable buttons
+                    const buttons = document.querySelectorAll('.option-btn');
+                    buttons.forEach(btn => {
+                        btn.disabled = true;
+                        if (btn.textContent === q.answer) {
+                            btn.classList.add('correct');
+                        }
+                    });
+
+                    // After 2 seconds, end the game (game over)
+                    setTimeout(() => {
+                        endGame(false);
+                    }, 2000);
+                }
+            }, 1000);
+        }
+        
+        // Load the current question
+        function loadQuestion() {
+            const q = questions[current];
+            document.getElementById("questionContext").textContent = q.context;
+            document.getElementById("questionText").textContent = q.question;
+            document.getElementById("currentLevel").textContent = `${current + 1}/${questions.length}`;
+            document.getElementById("explanation").style.display = "none";
+            
+            // Set difficulty tag
+            document.getElementById("difficultyTag").textContent = q.difficulty.toUpperCase();
+            document.getElementById("difficultyTag").className = `difficulty-tag ${q.difficulty}`;
+            
+            const optionsDiv = document.getElementById("options");
+            optionsDiv.innerHTML = '';
+            
+            // Shuffle the options for this question
+            const shuffledOptions = shuffleArray([...q.options]);
+            
+            // Create option buttons
+            shuffledOptions.forEach((opt) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.textContent = opt;
+                btn.addEventListener('click', () => checkAnswer(opt, q.answer));
+                optionsDiv.appendChild(btn);
+            });
+            
+            document.getElementById("next").style.display = "none";
+            
+            // Reset lifeline button states
+            document.getElementById('lifeline5050').disabled = !lifelines.fiftyFifty;
+            document.getElementById('lifelineAudience').disabled = !lifelines.audience;
+            document.getElementById('lifelineExpert').disabled = !lifelines.expert;
+            
+            // Update access level based on progress
+            const accessIndex = Math.min(Math.floor(current / 3), accessLevels.length - 1);
+            document.getElementById("accessLevel").textContent = accessLevels[accessIndex];
+            
+            // Start the timer
+            startTimer();
+        }
+        
+        // Check the selected answer
+        function checkAnswer(selected, correct) {
+            clearInterval(timer);
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // Disable all buttons
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === correct) {
+                    btn.classList.add('correct');
+                }
+                if (btn.textContent === selected && selected !== correct) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Show explanation
+            document.getElementById("explanationText").textContent = questions[current].explanation;
+            document.getElementById("explanation").style.display = "block";
+            
+            if (selected === correct) {
+                score++;
+                updateStats();
+                document.getElementById("next").style.display = "inline-block";
+            } else {
+                // Game over on wrong answer
+                setTimeout(() => endGame(false), 2000);
+            }
+        }
+        
+        // Update game stats
+        function updateStats() {
+            const progress = Math.floor((score / questions.length) * 100);
+            document.getElementById("score").textContent = `${progress}%`;
+            document.getElementById("scoreDisplay").textContent = `Score: ${score}/${questions.length}`;
+        }
+        
+        // Move to the next question
+        function nextQuestion() {
+            current++;
+            if (current < questions.length) {
+                loadQuestion();
+            } else {
+                endGame(true);
+            }
+        }
+        
+        // End the game
+        function endGame(isWin) {
+            if (isWin) {
+                document.getElementById("successMessage").textContent = `${username}, you scored ${score}/${questions.length}!`;
+                document.getElementById("gameWinScreen").style.display = "flex";
+            } else {
+                document.getElementById("failureMessage").textContent = `${username}, you were detected at level ${current + 1} (Score: ${score}/${questions.length})`;
+                document.getElementById("gameOverScreen").style.display = "flex";
+            }
+        }
+        
+        // Restart the game
+        function restartGame() {
+            document.getElementById("gameOverScreen").style.display = "none";
+            document.getElementById("gameWinScreen").style.display = "none";
+            
+            current = 0;
+            score = 0;
+            lifelines = {
+                fiftyFifty: true,
+                audience: true,
+                expert: true
+            };
+            
+            shuffleAndPickQuestions();
+            loadQuestion();
+            updateStats();
+        }
+        
+        // 50:50 lifeline - remove two wrong answers
+        function use5050() {
+            if (!lifelines.fiftyFifty) return;
+            
+            const q = questions[current];
+            const buttons = Array.from(document.querySelectorAll('.option-btn'));
+            const correctButton = buttons.find(btn => btn.textContent === q.answer);
+            const wrongButtons = buttons.filter(btn => btn.textContent !== q.answer);
+            
+            // Randomly remove two wrong answers
+            let removed = 0;
+            while (removed < 2 && wrongButtons.length > 0) {
+                const randomIndex = Math.floor(Math.random() * wrongButtons.length);
+                wrongButtons[randomIndex].style.display = 'none';
+                wrongButtons.splice(randomIndex, 1);
+                removed++;
+            }
+            
+            lifelines.fiftyFifty = false;
+            document.getElementById('lifeline5050').disabled = true;
+        }
+        
+        // Audience lifeline
+        function useAudience() {
+            if (!lifelines.audience) return;
+            
+            const q = questions[current];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // Simulate audience poll (correct answer gets highest percentage)
+            let percentages = {};
+            const correctPercentage = 70 + Math.floor(Math.random() * 20); // 70-90%
+            let remaining = 100 - correctPercentage;
+            
+            buttons.forEach(btn => {
+                if (btn.textContent === q.answer) {
+                    percentages[btn.textContent] = correctPercentage;
+                } else {
+                    const p = Math.floor(Math.random() * remaining);
+                    percentages[btn.textContent] = p;
+                    remaining -= p;
+                }
+            });
+            
+            // Distribute any remaining percentage
+            if (remaining > 0) {
+                const options = Object.keys(percentages);
+                const randomOption = options[Math.floor(Math.random() * options.length)];
+                percentages[randomOption] += remaining;
+            }
+            
+            // Show audience result
+            let resultText = "CROWD SOURCE RESULTS:\n";
+            for (const [option, percent] of Object.entries(percentages)) {
+                resultText += `${option}: ${'█'.repeat(Math.floor(percent/10))} ${percent}%\n`;
+            }
+            
+            alert(resultText);
+            lifelines.audience = false;
+            document.getElementById('lifelineAudience').disabled = true;
+        }
+        
+        // Expert lifeline
+        function useExpert() {
+            if (!lifelines.expert) return;
+            
+            const q = questions[current];
+            
+            // Simulate expert opinion (80% chance of being correct)
+            const isCorrect = Math.random() < 0.8;
+            const chosenOption = isCorrect ? q.answer : 
+                [...q.options].find(opt => opt !== q.answer);
+            
+            alert(`EXPERT ANALYSIS:\n"Based on the scenario, I'm ${isCorrect ? 'confident' : 'unsure'}, but I believe the solution is ${chosenOption}"`);
+            
+            lifelines.expert = false;
+            document.getElementById('lifelineExpert').disabled = true;
+        }
+        
+        // Start the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
